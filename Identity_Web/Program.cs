@@ -1,8 +1,17 @@
+using Identity_Web.Data.Context;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+#region Context
+builder.Services.AddDbContext<MyDbContext>(option =>
+{
+    option.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnections"));
+});
 
+#endregion
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
