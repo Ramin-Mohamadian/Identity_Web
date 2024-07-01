@@ -1,10 +1,14 @@
 using Identity_Web.Data.Context;
+using Identity_Web.Data.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+
 #region Context
 builder.Services.AddDbContext<MyDbContext>(option =>
 {
@@ -12,6 +16,14 @@ builder.Services.AddDbContext<MyDbContext>(option =>
 });
 
 #endregion
+
+#region Ioc
+builder.Services.AddIdentity<User,Role>()
+    .AddEntityFrameworkStores<MyDbContext>()
+    .AddDefaultTokenProviders();
+#endregion
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

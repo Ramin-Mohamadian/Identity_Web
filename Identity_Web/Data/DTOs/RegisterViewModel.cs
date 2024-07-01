@@ -18,10 +18,12 @@ namespace Identity_Web.Data.DTOs
 
 
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        [DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
 
 
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        [DataType(DataType.Password)]
         [Compare(nameof(Password))]
         public string PasswordConfirm { get; set; } = string.Empty;
     }
