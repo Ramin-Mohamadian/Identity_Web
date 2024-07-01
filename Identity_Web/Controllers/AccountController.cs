@@ -2,6 +2,7 @@
 using Identity_Web.Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Identity_Web.Controllers
 {
@@ -28,7 +29,36 @@ namespace Identity_Web.Controllers
         [HttpPost]
         public IActionResult Register(RegisterViewModel register)
         {
-            return View();
+
+            if (!ModelState.IsValid)
+            {
+                return View(register);
+            }
+
+            User newUser=new User()
+            {
+                Name=register.FirstName,
+                Family=register.LastName,
+                Email=register.Email,
+                UserName=register.Email
+            };
+
+            var result=_userManager.CreateAsync(newUser,register.Password).Result;
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index","Home");
+            }
+            else
+            {
+                string message = "";
+                foreach (var item in result.Errors.ToList())
+                {
+                    message += item.Description + Environment.NewLine;
+                }
+                TempData["RegisterError"]=message;
+            }
+            return View(register);
         }
 
     }
