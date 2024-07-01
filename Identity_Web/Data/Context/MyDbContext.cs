@@ -5,11 +5,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Identity_Web.Data.Context
 {
-    public class MyDbContext:IdentityDbContext<User>
+    public class MyDbContext:IdentityDbContext<User,Role,string>
     {
         public MyDbContext(DbContextOptions<MyDbContext> options):base(options) 
         {
             
+        }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
         }
 
 
