@@ -6,5 +6,6 @@ namespace Identity_Web.Data.Entities
     {
         public string Name { get; set; } = string.Empty;
         public string Family { get; set; } = string.Empty;
+        public int Age { get; set; }
     }
 }
