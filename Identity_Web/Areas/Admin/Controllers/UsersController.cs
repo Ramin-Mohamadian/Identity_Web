@@ -110,5 +110,38 @@ namespace Identity_Web.Areas.Admin.Controllers
 
             return View(editUser);
         }
+
+
+
+
+        public IActionResult Delete(string id)
+        {
+            var user = _userManager.FindByIdAsync(id).Result;
+
+            EditUserViewModel editUser = new EditUserViewModel()
+            {
+                Id = user.Id,
+                FirstName = user.Name,
+                LastName = user.Family,
+                UserName = user.UserName,
+                PhoneNumber = user.PhoneNumber
+            };
+            return View(editUser);
+
+        }
+
+
+        [HttpPost]
+        public IActionResult Delete(EditUserViewModel userDelete) 
+        {
+            var user = _userManager.FindByIdAsync(userDelete.Id).Result;
+
+            var result=_userManager.DeleteAsync(user).Result;
+            if (result.Succeeded) 
+            {
+                return RedirectToAction("Index", "Users", new { area = "Admin" });
+            }
+            return View(userDelete);
+        }
     }
 }
