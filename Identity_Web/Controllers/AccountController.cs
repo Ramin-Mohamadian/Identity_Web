@@ -10,9 +10,11 @@ namespace Identity_Web.Controllers
     {
 
         private readonly UserManager<User> _userManager;
-        public AccountController(UserManager<User> userManager)
+        private readonly SignInManager<User> _signInManager;
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         public IActionResult Index()
@@ -20,6 +22,7 @@ namespace Identity_Web.Controllers
             return View();
         }
 
+        #region Register
         [HttpGet]
         public IActionResult Register()
         {
@@ -35,19 +38,19 @@ namespace Identity_Web.Controllers
                 return View(register);
             }
 
-            User newUser=new User()
+            User newUser = new User()
             {
-                Name=register.FirstName,
-                Family=register.LastName,
-                Email=register.Email,
-                UserName=register.Email
+                Name = register.FirstName,
+                Family = register.LastName,
+                Email = register.Email,
+                UserName = register.Email
             };
 
-            var result=_userManager.CreateAsync(newUser,register.Password).Result;
+            var result = _userManager.CreateAsync(newUser, register.Password).Result;
 
             if (result.Succeeded)
             {
-                return RedirectToAction("Index","Home");
+                return RedirectToAction("Index", "Home");
             }
             else
             {
@@ -56,10 +59,66 @@ namespace Identity_Web.Controllers
                 {
                     message += item.Description + Environment.NewLine;
                 }
-                TempData["RegisterError"]=message;
+                TempData["RegisterError"] = message;
             }
             return View(register);
         }
+        #endregion
 
+
+        #region LogIn
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+        public IActionResult Login(LoginViewModel login)
+        {
+            if (!ModelState.IsValid)
+            {
+                ModelState.AddModelError("UserName", "خطا ....");
+                return View(login);
+            }
+
+            _signInManager.SignOutAsync();
+
+            var user = _userManager.FindByNameAsync(login.UserName).Result;
+            if (user == null)
+            {
+                return NotFound();
+            }
+            var result = _signInManager.PasswordSignInAsync(user, login.Password, login.IsPersistant, true).Result;
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            if (result.RequiresTwoFactor == true)
+            {
+                //ToDo:
+            }
+            if (result.IsLockedOut == true)
+            {
+                //ToDo
+            }
+            
+
+
+            return View();
+        }
+        #endregion
+
+        #region LogOut
+      
+        public IActionResult LogOut() 
+        {
+            _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "home");
+        }
+        #endregion
     }
 }
