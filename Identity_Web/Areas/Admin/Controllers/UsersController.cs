@@ -73,5 +73,42 @@ namespace Identity_Web.Areas.Admin.Controllers
             }
             return View(register);
         }
+
+
+        public IActionResult Edit(string id) 
+        { 
+            var user =_userManager.FindByIdAsync(id).Result;
+
+            EditUserViewModel editUser = new EditUserViewModel()
+            {
+                Id=user.Id,
+                FirstName=user.Name,
+                LastName=user.Family,
+                UserName=user.UserName,
+                PhoneNumber=user.PhoneNumber
+            };
+            return View(editUser);
+        }
+
+        [HttpPost]
+        public IActionResult Edit(EditUserViewModel editUser)
+        {
+            var user=_userManager.FindByIdAsync(editUser.Id).Result;
+
+            user.UserName= editUser.UserName;
+            user.Name=editUser.FirstName;
+            user.Family=editUser.LastName;
+            user.PhoneNumber=editUser.PhoneNumber;
+
+
+           var result= _userManager.UpdateAsync(user).Result;
+
+            if(result.Succeeded)
+            {
+                return RedirectToAction("Index", "Users", new { area = "Admin" });
+            }
+
+            return View(editUser);
+        }
     }
 }
