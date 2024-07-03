@@ -1,0 +1,40 @@
+﻿@model Identity_Web.Areas.Admin.Models.DTOs.Roles.AddUserRoleDto
+
+@{
+    ViewData["Title"] = "AddUserRole";
+    Layout = "~/Areas/Admin/Views/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="AddUserRole">
+            <p>
+                شما قصد افزودن نقش جدید به کاربر
+                <text>@Model.UserName</text>
+                <span>ایمیل</span>
+                <text>@Model.Email</text>
+                <span>را دارید</span>
+            </p>
+
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <input asp-for="Id" type="hidden" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Role" class="control-label"></label>
+                <select asp-for="Role" asp-items="Model.Roles" class="form-control"></select>
+                <span asp-validation-for="Role" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

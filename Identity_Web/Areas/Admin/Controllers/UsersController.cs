@@ -1,8 +1,10 @@
 ﻿using Identity_Web.Areas.Admin.Models.DTOs;
+using Identity_Web.Areas.Admin.Models.DTOs.Roles;
 using Identity_Web.Data.DTOs;
 using Identity_Web.Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Identity_Web.Areas.Admin.Controllers
 {
@@ -10,9 +12,11 @@ namespace Identity_Web.Areas.Admin.Controllers
     public class UsersController : Controller
     {
         private readonly UserManager<User> _userManager;
-        public UsersController(UserManager<User> userManager)
+        private readonly RoleManager<Role> _roleManager;
+        public UsersController(UserManager<User> userManager, RoleManager<Role> roleManager)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         public IActionResult Index()
@@ -143,5 +147,38 @@ namespace Identity_Web.Areas.Admin.Controllers
             }
             return View(userDelete);
         }
+
+
+
+        public IActionResult AddUserRole(string Id) 
+        {
+
+            var user = _userManager.FindByIdAsync(Id).Result;
+
+            var roles = new List<SelectListItem>(
+                _roleManager.Roles.Select(p => new SelectListItem
+                {
+                    Text = p.Name,
+                    Value = p.Name,
+                }
+                ).ToList());
+
+            return View(new AddUserRoleDto 
+            {
+                Id = Id,
+                Roles = roles,
+                Email = user.Email,
+                Role = user.Name
+            });
+        }
+
+        [HttpPost]
+        public IActionResult AddUserRole(AddUserRoleDto newRole)
+        {
+            var user = _userManager.FindByIdAsync(newRole.Id).Result;
+            var result = _userManager.AddToRoleAsync(user, newRole.Role).Result;
+            return RedirectToAction("UserRoles", "Users", new { Id = user.Id, area = "admin" });
+        }
+
     }
 }
