@@ -180,5 +180,15 @@ namespace Identity_Web.Areas.Admin.Controllers
             return RedirectToAction("UserRoles", "Users", new { Id = user.Id, area = "admin" });
         }
 
+
+
+        public IActionResult UserRoles(string Id)
+        {
+            var user =_userManager.FindByIdAsync(Id).Result;
+            var roles=_userManager.GetRolesAsync(user).Result;
+
+            return View(roles);
+        }
+
     }
 }
