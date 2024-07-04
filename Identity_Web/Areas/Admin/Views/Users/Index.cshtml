@@ -60,7 +60,9 @@
             <td>
                 @Html.ActionLink("Edit", "Edit" ,"Users", new { item.Id,area ="Admin"}) |
                @*  @Html.ActionLink("Details", "Details","Users", new { item.Id,area ="Admin" }) | *@
-                    @Html.ActionLink("Delete", "Delete", "Users", new { item.Id, area = "Admin" })
+                    @Html.ActionLink("Delete", "Delete", "Users", new { item.Id, area = "Admin" })|
+                    <a asp-action="AddUserRole" asp-controller="Users" asp-route-Id="@item.Id">AddRole</a>|
+                    <a asp-action="UserRoles" asp-controller="Users" asp-route-Id="@item.Id">UserRole</a>
             </td>
         </tr>
 }
