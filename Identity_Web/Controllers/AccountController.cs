@@ -1,4 +1,6 @@
-﻿using Identity_Web.Data.DTOs;
+﻿using Azure.Core;
+using Identity_Web.Areas.Admin.Services;
+using Identity_Web.Data.DTOs;
 using Identity_Web.Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +13,12 @@ namespace Identity_Web.Controllers
 
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly EmailService _emailService;
         public AccountController(UserManager<User> userManager, SignInManager<User> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _emailService = new EmailService();
         }
 
         public IActionResult Index()
@@ -50,7 +54,22 @@ namespace Identity_Web.Controllers
 
             if (result.Succeeded)
             {
-                return RedirectToAction("Index", "Home");
+                var token = _userManager.GenerateEmailConfirmationTokenAsync(newUser).Result;
+
+                string CallBackUrl = Url.Action("ConfirmEmail", "Account", new
+                {
+                    UserId = newUser.Id
+                    ,
+                    Token = token
+                }
+                , protocol: Request.Scheme);
+
+                string body = $"لطفا برای فعالسازی حساب خود روی لینک زیر کلیک کنید </br> " +
+                    $"<a href={CallBackUrl}> link</a>";
+
+                _emailService.Excute(newUser.Email, body, "فعال سازی حساب ");
+
+                return RedirectToAction("DisplayEmail", "Account");
             }
             else
             {
@@ -67,6 +86,33 @@ namespace Identity_Web.Controllers
 
 
         #region LogIn
+
+        public IActionResult ConfirmEmail(string UserId,string Token)
+        {
+            if(UserId == null || Token == null)
+            {
+                return BadRequest();
+            }
+            var user=_userManager.FindByIdAsync(UserId).Result;
+            if(user ==null)
+            {
+                return NotFound();
+            }
+
+          var confirm=  _userManager.ConfirmEmailAsync(user, Token).Result;
+            if(confirm.Succeeded)
+            {
+                return RedirectToAction("Login","Account");
+            }
+            
+            return NoContent();
+        }
+
+        public IActionResult DisplayEmail()
+        {
+            return View();
+        }
+
 
         [HttpGet]
         public IActionResult Login()
@@ -105,7 +151,7 @@ namespace Identity_Web.Controllers
             {
                 //ToDo
             }
-            
+
 
 
             return View();
@@ -113,8 +159,8 @@ namespace Identity_Web.Controllers
         #endregion
 
         #region LogOut
-      
-        public IActionResult LogOut() 
+
+        public IActionResult LogOut()
         {
             _signInManager.SignOutAsync();
             return RedirectToAction("Index", "home");

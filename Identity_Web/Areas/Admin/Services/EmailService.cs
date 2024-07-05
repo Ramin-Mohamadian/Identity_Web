@@ -15,7 +15,7 @@ namespace Identity_Web.Areas.Admin.Services
             client.Timeout = 1000000;
             client.DeliveryMethod = SmtpDeliveryMethod.Network;
             client.UseDefaultCredentials = false;
-            client.Credentials = new NetworkCredential("ramin.mohamadyan20@gmail.com", "@Ramin2020");
+            client.Credentials = new NetworkCredential("ramin.mohamadyan20@gmail.com", "bdcc imwx wcck hejy");
             MailMessage message = new MailMessage("ramin.mohamadyan20@gmail.com",UserEmail,Subject,Body);
             message.IsBodyHtml = true;
             message.BodyEncoding=UTF8Encoding.UTF8;
