@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using Identity_Web.Areas.Admin.Services;
+using Identity_Web.Data.Context;
 using Identity_Web.Data.DTOs;
 using Identity_Web.Data.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -14,11 +15,13 @@ namespace Identity_Web.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly EmailService _emailService;
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager)
+        private readonly MyDbContext _myDbContext;
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, MyDbContext myDbContext)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailService = new EmailService();
+            _myDbContext = myDbContext;
         }
 
         public IActionResult Index()
@@ -85,26 +88,88 @@ namespace Identity_Web.Controllers
         #endregion
 
 
-        #region LogIn
 
-        public IActionResult ConfirmEmail(string UserId,string Token)
+        #region ForgotPassword
+        public IActionResult ForgotPassword()
         {
-            if(UserId == null || Token == null)
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult ForgotPassword(ForgotPasswordDto forgot)
+        {
+            if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
-            var user=_userManager.FindByIdAsync(UserId).Result;
-            if(user ==null)
+            // var usebr =_userManager.FindByEmailAsync( forgot.Email).Result;
+            var user = _myDbContext.Users.FirstOrDefault(u => u.Email == forgot.Email);
+
+            if (user == null)
             {
                 return NotFound();
             }
 
-          var confirm=  _userManager.ConfirmEmailAsync(user, Token).Result;
-            if(confirm.Succeeded)
+            var token = _userManager.GeneratePasswordResetTokenAsync(user).Result;
+            string callbackUrl = Url.Action("RessetPassword", "Account", new { UserId = user.Id, Token = token }, protocol: Request.Scheme);
+
+            string body = $"جهت بازیابی کلمه عبور بر روی لینک زیر کلیک کنید </br><a href={callbackUrl}>  RessetPasswordLink </a>";
+            _emailService.Excute(user.Email, body, "بازیابی کلمه عبور");
+            return PartialView("SuccessResetPassword");
+        }
+
+
+
+
+        public IActionResult RessetPassword(string UserId, string Token)
+        {
+            ResetPasswordDto ResetPassword = new ResetPasswordDto()
             {
-                return RedirectToAction("Login","Account");
+                UserId = UserId,
+                Token = Token,
+            };
+            return View(ResetPassword);
+        }
+
+        [HttpPost]
+        public IActionResult RessetPassword(ResetPasswordDto reset)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
             }
-            
+            var user=_userManager.FindByIdAsync(reset.UserId).Result;
+            var result=_userManager.ResetPasswordAsync(user, reset.Token, reset.Password).Result;
+            if(result.Succeeded)
+            {
+                return View("~/Views/Account/View.cshtml");
+            }
+            return View(reset);
+        }
+        #endregion
+
+
+
+        #region LogIn
+
+        public IActionResult ConfirmEmail(string UserId, string Token)
+        {
+            if (UserId == null || Token == null)
+            {
+                return BadRequest();
+            }
+            var user = _userManager.FindByIdAsync(UserId).Result;
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var confirm = _userManager.ConfirmEmailAsync(user, Token).Result;
+            if (confirm.Succeeded)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
             return NoContent();
         }
 
